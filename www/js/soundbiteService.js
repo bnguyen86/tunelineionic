@@ -1,50 +1,81 @@
-angular.module('soundbiteService', [])
+angular.module('soundbiteService', ['$cordovaMedia'])
 
 .factory('SoundbiteService', function() {
-  // Might use a resource here that returns a JSON array
-
-  // Some fake testing data
-  var chats = [{
-    id: 0,
-    name: 'Ben Sparrow',
-    lastText: 'You on your way?',
-    face: 'img/ben.png'
-  }, {
-    id: 1,
-    name: 'Max Lynx',
-    lastText: 'Hey, it\'s me',
-    face: 'img/max.png'
-  }, {
-    id: 2,
-    name: 'Adam Bradleyson',
-    lastText: 'I should buy a boat',
-    face: 'img/adam.jpg'
-  }, {
-    id: 3,
-    name: 'Perry Governor',
-    lastText: 'Look at my mukluks!',
-    face: 'img/perry.png'
-  }, {
-    id: 4,
-    name: 'Mike Harrington',
-    lastText: 'This is wicked good ice cream.',
-    face: 'img/mike.png'
-  }];
+  var mediaObject;
 
   return {
-    all: function() {
-      return chats;
-    },
-    remove: function(chat) {
-      chats.splice(chats.indexOf(chat), 1);
-    },
-    get: function(chatId) {
-      for (var i = 0; i < chats.length; i++) {
-        if (chats[i].id === parseInt(chatId)) {
-          return chats[i];
+    initPlayer: function(fileName, returnDurationFunction){
+        mediaObject = $cordovaMedia.newMedia(fileName);
+        if(mediaObject){
+          mediaObject.play();
+          mediaObject.stop();
+        }
+        mediaControllerRepeater = window.setInterval(function(){
+          
+          var duration = mediaObject.getDuration();
+          if(duration > 0){
+            returnDurationFunction(duration);
+            window.clearInterval(mediaControllerRepeater);
+          }
+        },100);
+      
+      },
+      /*
+      fileName: string
+        full path to where the file will be stored
+      statusCallbackFunction: function(status)
+        will be called when the media status changes, status is an int
+      */
+      startRecording: function(fileName, statusCallbackFunction){
+        mediaObject = new Media(fileName, success, failure, statusCallbackFunction);
+        console.log('mediaObject: '+JSON.stringify(mediaObject));
+        mediaObject.startRecord();    
+      },
+
+      stopRecording: function(){
+        if(mediaObject){
+          mediaObject.stopRecord();
+          mediaObject.release();
+        }
+      },
+
+      playMedia:  function(fileName,statusCallbackFunction){
+        if(!mediaObject){
+          mediaObject = new Media(fileName, success, failure, statusCallbackFunction);
+        }
+          mediaObject.play();
+      },
+
+      pauseMedia:  function(){
+        if(mediaObject){
+          mediaObject.pause();      
+        }
+      },
+
+      stopMedia:  function(){
+        if(mediaObject){
+          mediaObject.stop();
+        }
+      },
+
+      resetMedia: function(){
+        if(mediaObject)
+          mediaObject.release();
+        mediaObject = null;
+      },
+
+      getCurrentPosition: function(updateTimeFunction){
+        mediaObject.getCurrentPosition(function(position){
+          if (position > -1) {
+            updateTimeFunction(position);
+                }
+        });
+      },
+
+      seekTo: function(position){
+        if(mediaObject !== null){
+          mediaObject.seekTo(position);
         }
       }
-      return null;
-    }
   };
 });
