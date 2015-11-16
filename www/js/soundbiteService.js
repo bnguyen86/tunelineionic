@@ -1,6 +1,6 @@
-angular.module('soundbiteService', ['$cordovaMedia'])
+angular.module('soundbiteService', [])
 
-.factory('SoundbiteService', function() {
+.factory('SoundbiteService', function($cordovaMedia) {
   var mediaObject;
 
   return {
@@ -27,7 +27,7 @@ angular.module('soundbiteService', ['$cordovaMedia'])
         will be called when the media status changes, status is an int
       */
       startRecording: function(fileName, statusCallbackFunction){
-        mediaObject = new Media(fileName, success, failure, statusCallbackFunction);
+        mediaObject = $cordovaMedia.newMedia(fileName);
         console.log('mediaObject: '+JSON.stringify(mediaObject));
         mediaObject.startRecord();    
       },
